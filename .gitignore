@@ -1,1 +1,4 @@
-build
+build/
+.vscode/
+lib/FreeRTOS-Kernel
+.DS_Store
