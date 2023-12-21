@@ -1,4 +1,4 @@
-// // Control a servo by degrees or millis
+/* // // Control a servo by degrees or millis
 
 // #include "pico/stdlib.h"
 // #include <stdio.h>
@@ -61,52 +61,50 @@
 // 	pwm_init(slice_num, &config, true);
 
 // 	frequency = newfrequency;
-// }
+// } */
 #include "servo.h"
 #include <cstdio>
 
-Servo::Servo(uint8_t servoPin, float startMillis) : servoPin(servoPin), frequency(50), clockDiv(64), wrap(39062) {
+Servo::Servo(int servoPin, float startMillis, float startfrequency) : mservoPin(servoPin), mfrequency(startfrequency), mclockDiv(64), mwrap(39062) {
     gpio_set_function(servoPin, GPIO_FUNC_PWM);
-    sliceNum = pwm_gpio_to_slice_num(servoPin);
+    msliceNum = pwm_gpio_to_slice_num(servoPin);
 
     pwm_config config = pwm_get_default_config();
     
     uint64_t clockspeed = clock_get_hz(clk_sys);
-    clockDiv = 64;
-    wrap = 39062;
 
-    while (clockspeed/clockDiv/frequency > 65535 && clockDiv < 256) {
-        clockDiv += 64; 
+    while (clockspeed/mclockDiv/startfrequency > 65535 && mclockDiv < 256) {
+        mclockDiv += 64; 
     }
     
-    wrap = clockspeed/clockDiv/frequency;
-    pwm_config_set_clkdiv(&config, clockDiv);
-    pwm_config_set_wrap(&config, wrap);
-    pwm_init(sliceNum, &config, true);
+    mwrap = clockspeed/mclockDiv/startfrequency;
+    pwm_config_set_clkdiv(&config, mclockDiv);
+    pwm_config_set_wrap(&config, mwrap);
+    pwm_init(msliceNum, &config, true);
 
     setDuty(startMillis);
 }
 
 void Servo::setDuty(float millis) {
-    pwm_set_gpio_level(servoPin, (millis / 20000.f) * wrap);
+	float T= (1000000/mfrequency);
+	// printf("f: %f\n", f);
+    pwm_set_gpio_level(mservoPin, (millis / T) * mwrap);
 }
 
 void Servo::setFrequency(float newFrequency) {
     pwm_config config = pwm_get_default_config();
 
     uint64_t clockspeed = clock_get_hz(clk_sys);
-    clockDiv = 64;
-    wrap = 39062;
 
-    while (clockspeed/clockDiv/newFrequency > 65535 && clockDiv < 256) {
-        clockDiv += 64;
+    while (clockspeed/mclockDiv/newFrequency > 65535 && mclockDiv < 256) {
+        mclockDiv += 64;
     }
 
-    wrap = clockspeed/clockDiv/newFrequency;
+    mwrap = clockspeed/mclockDiv/newFrequency;
 
-    pwm_config_set_clkdiv(&config, clockDiv);
-    pwm_config_set_wrap(&config, wrap);
-    pwm_init(sliceNum, &config, true);
+    pwm_config_set_clkdiv(&config, mclockDiv);
+    pwm_config_set_wrap(&config, mwrap);
+    pwm_init(msliceNum, &config, true);
 
-    frequency = newFrequency;
+    mfrequency = newFrequency;
 }

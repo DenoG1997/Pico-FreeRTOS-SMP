@@ -21,16 +21,16 @@
 
 class Servo {
 public:
-    Servo(uint8_t servoPin, float startMillis);
+    Servo(int servoPin, float startMillis, float frequency);
     void setDuty(float millis);
     void setFrequency(float newFrequency);
 
 private:
-    uint8_t servoPin;
-    float clockDiv;
-    float wrap;
-    float frequency;
-    uint sliceNum;
+    uint8_t mservoPin;
+    float mclockDiv;
+    float mwrap;
+    float mfrequency;
+    uint msliceNum;
 };
 
 #endif //SERVO_H
